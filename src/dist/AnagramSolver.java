@@ -1,19 +1,29 @@
 package dist;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Files.*;
-import java.nio.file.LinkOption;
+import java.net.URI;
+import java.net.URL;
 import java.nio.file.Paths;
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
 
-public class AnagramSolver {
+
+
+public class AnagramSolver implements Runnable{
 	public HashMap<Integer, LinkedList<String>> instanceMapper;
 	public HashMap<Character, Integer> AlphabetIndexer;
 	public LinkedList<String> permuationHandler;
+	
 	public AnagramSolver(){
 		this.instanceMapper = new HashMap<Integer, LinkedList<String>>();
 		this.AlphabetIndexer = new HashMap<Character, Integer>();
 		this.permuationHandler = new LinkedList<String>();
+	}
+	@Override
+	public void run(){
+		
 	}
 	
 	public String[] getFileResource(String fileName){
@@ -34,17 +44,18 @@ public class AnagramSolver {
 				//Process and store line
 				resultsFromFileRaw[indexCounter++] = currentLine;
 				insertPos = decidePath(currentLine.charAt(0));
-				this.instanceMapper.put(insertPos, addToInnerLinkedList(currentLine, insertPos));
-				
+				this.instanceMapper.put(insertPos, addToInnerLinkedList(currentLine, insertPos));		
 			}
+			br.close();
 		}
 		catch(IOException E){
 			E.printStackTrace();
 		}
-		
+
 		return resultsFromFileRaw;
 	}
 	
+
 	public LinkedList<String> addToInnerLinkedList(String itemToAdd, int currentListLocation){
 		LinkedList<String> old = this.instanceMapper.get(currentListLocation);
 		if(old == null){
@@ -81,30 +92,16 @@ public class AnagramSolver {
 		}
 	}
 	
-	public void getAllPerm(String perm, String word){
-		if(word.isEmpty()){
-			if(this.permuationHandler == null){
-				this.permuationHandler = new LinkedList<String>();
-				this.permuationHandler.add(perm + word);
-			}
-			else{
-				this.permuationHandler.add(perm + word);
-			}
-		}
-		else{
-			word = word.toLowerCase();
-			for(int i = 0; i < word.length(); i++){
-			   getAllPerm(perm + word.charAt(i), word.substring(0,  i) + word.substring(i+1, word.length()));
-			}
-		}
-	}
 	
 	public String[] findAllResults(String givenWord, String[] dictionary){
 		//System.err.println("Being finding all answers...");
-		long startTime = System.currentTimeMillis();
+		//long startTime = System.currentTimeMillis();
 		String[] results = new String[1000];
 		//results = getAllPerm("", givenWord);
-		getAllPerm("", givenWord);
+		//getAllPerm("", givenWord);
+		PermutationFinder worker = new PermutationFinder(this.permuationHandler, "", givenWord);
+		worker.run();
+		this.permuationHandler = worker.getReturn();
 	    results = copyIntoArray(this.permuationHandler);
 	    results = removeDuplicates(results);
 	   // System.err.println("End finding all answers! It took: " + (System.currentTimeMillis()-startTime));
@@ -113,7 +110,7 @@ public class AnagramSolver {
 	
 	public String[] copyIntoArray(LinkedList<String> source){
 		//System.err.println("Begin copy operation...");
-		long startTime = System.currentTimeMillis();
+		//long startTime = System.currentTimeMillis();
 		String[] copy = source.toArray(new String[source.size()-1]);
 		//System.err.println("End copy operation! It took: " + (System.currentTimeMillis()-startTime));
 		return copy;
@@ -121,7 +118,7 @@ public class AnagramSolver {
 	
 	public String[] removeDuplicates(String[] possibleDoops){
 		//System.err.println("Starting to remove duplicates in answer...");
-		long startTime = System.currentTimeMillis();
+		//long startTime = System.currentTimeMillis();
 		String[] result = new String[possibleDoops.length];
 		int insertedNum = 0;
 		int incrementor = 0;
@@ -141,7 +138,7 @@ public class AnagramSolver {
 	
 	public boolean isWord(String wordToCheck){
 		//System.err.println("Starting Word Check Case...");
-		long startTime = System.currentTimeMillis();
+		//long startTime = System.currentTimeMillis();
 		wordToCheck = wordToCheck.toUpperCase();
 		int lookupNum = this.AlphabetIndexer.get(wordToCheck.charAt(0));
 		LinkedList<String> currentAnswerSet = this.instanceMapper.get(lookupNum);
@@ -232,5 +229,16 @@ public class AnagramSolver {
 			solver.writeResultsToFile(resultsForOneWord, catchResultsFromFileRaw[currentMax++]);
 			System.out.println("End word puzzle. It took: " + (System.currentTimeMillis() - startTimer) + " to be solved!");
 		}
+		
+		LinkedList<String> wordsToSolve = new LinkedList<String>(Arrays.asList(catchResultsFromFileRaw));
+		int numProblemCounter = 0;
+		String currentWord;
+		ExecutorService executor = Executors.newFixedThreadPool(10);
+	    while((currentWord = wordsToSolve.get(numProblemCounter)) != null){
+	    	AnagramSolver workerThreadGeneric = new AnagramSolver();
+	    	
+	    	numProblemCounter++;
+	    }
 	}
 }
+
