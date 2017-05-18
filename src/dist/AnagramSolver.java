@@ -100,36 +100,33 @@ public class AnagramSolver {
 	}
 	
 	public String[] findAllResults(String givenWord, String[] dictionary){
-		System.err.println("Being finding all answers...");
+		//System.err.println("Being finding all answers...");
 		long startTime = System.currentTimeMillis();
 		String[] results = new String[1000];
 		//results = getAllPerm("", givenWord);
 		getAllPerm("", givenWord);
 	    results = copyIntoArray(this.permuationHandler);
 	    results = removeDuplicates(results);
-	    System.err.println("End finding all answers! It took: " + (System.currentTimeMillis()-startTime));
+	   // System.err.println("End finding all answers! It took: " + (System.currentTimeMillis()-startTime));
 		return results;
 	}
 	
 	public String[] copyIntoArray(LinkedList<String> source){
-		System.err.println("Begin copy operation...");
+		//System.err.println("Begin copy operation...");
 		long startTime = System.currentTimeMillis();
-		int looper = 0;
-		String[] copy = new String[1000000];
-		for(looper = 0; looper < source.size(); looper++){
-			copy[looper] = source.get(looper);
-		}
-		System.err.println("End copy operation! It took: " + (System.currentTimeMillis()-startTime));
+		String[] copy = source.toArray(new String[source.size()-1]);
+		//System.err.println("End copy operation! It took: " + (System.currentTimeMillis()-startTime));
 		return copy;
 	}
 	
 	public String[] removeDuplicates(String[] possibleDoops){
-		System.err.println("Starting to remove duplicates in answer...");
+		//System.err.println("Starting to remove duplicates in answer...");
 		long startTime = System.currentTimeMillis();
-		String[] result = new String[1000000];
+		String[] result = new String[possibleDoops.length];
 		int insertedNum = 0;
 		int incrementor = 0;
-		while(possibleDoops[incrementor] != null){
+		//System.err.println(possibleDoops.length);
+		while(possibleDoops[incrementor] != null && incrementor < possibleDoops.length-1){
 			if(isWord(possibleDoops[incrementor])){
 				if(!AnagramSolver.contains(result, possibleDoops[incrementor])){
 					result[insertedNum++] = possibleDoops[incrementor];
@@ -138,23 +135,23 @@ public class AnagramSolver {
 			
 			incrementor++;
 		}
-		System.err.println("Done removing all duplicates in answer It took: " + (System.currentTimeMillis()-startTime));
+		//System.err.println("Done removing all duplicates in answer It took: " + (System.currentTimeMillis()-startTime));
 		return result;
 	}
 	
 	public boolean isWord(String wordToCheck){
-		System.err.println("Starting Word Check Case...");
+		//System.err.println("Starting Word Check Case...");
 		long startTime = System.currentTimeMillis();
 		wordToCheck = wordToCheck.toUpperCase();
 		int lookupNum = this.AlphabetIndexer.get(wordToCheck.charAt(0));
 		LinkedList<String> currentAnswerSet = this.instanceMapper.get(lookupNum);
-		System.err.println("Copying result into usable subset...");
+		//System.err.println("Copying result into usable subset...");
 		String[] usableCopy = copyIntoArray(currentAnswerSet);
 		if(AnagramSolver.contains(usableCopy, wordToCheck.toLowerCase())){
-			System.err.println("End word check case!");
+			//System.err.println("End word check case!");
 			return true;
 		}
-		System.err.println("End word check case! It took: " + (System.currentTimeMillis()-startTime));
+		//System.err.println("End word check case! It took: " + (System.currentTimeMillis()-startTime));
 		return false;
 	}
 	
@@ -173,7 +170,9 @@ public class AnagramSolver {
 			    while(dataInput[writeHead] != null){
 				    outputWriter.write(dataInput[writeHead++] + ",");
 			    }
+			    outputWriter.write("\n");
 			    outputWriter.close();
+			    this.permuationHandler = null;
 			    System.err.println("Wrote to File Anagram-Answers.txt and saved it to: " + homeDir);
 			}
 			catch(IOException e){
@@ -184,9 +183,10 @@ public class AnagramSolver {
 		else{
 			int writeHead = 0;
 			try(BufferedWriter outputWriter = new BufferedWriter(new FileWriter(homeDir + "\\Anagram-Answers.txt", true))){
-				outputWriter.write("\n" + wordGiven + " : ");
+				outputWriter.newLine();
+				outputWriter.write(wordGiven + " : ");
 				while(dataInput[writeHead] != null){
-					outputWriter.write(dataInput[writeHead++] + "\n");
+					outputWriter.write(dataInput[writeHead++] + ",");
 					
 				}
 				outputWriter.close();
@@ -220,16 +220,17 @@ public class AnagramSolver {
 		String[] resultsForOneWord = new String[100000];
 		catchResultsFromFileRaw = solver.getFileResource("dictionary.txt");
 		
-		resultsForOneWord = solver.findAllResults("anna", solver.getFileResource("dictionary.txt"));
-		solver.writeResultsToFile(resultsForOneWord, "anna");
-		
 		//Solve for each word in dictionary
-		int maxToDo = 10;
+		int maxToDo = 100;
 		int currentMax = 0;
 		while(currentMax != maxToDo){
+			System.out.println("Starting word " + currentMax + " to be solved...");
+			long startTimer = System.currentTimeMillis();
+			solver = new AnagramSolver();
+			solver.setupAlphabetHash();
 			resultsForOneWord = solver.findAllResults(catchResultsFromFileRaw[currentMax], solver.getFileResource("dictionary.txt"));
-			System.out.println(resultsForOneWord[0]);
 			solver.writeResultsToFile(resultsForOneWord, catchResultsFromFileRaw[currentMax++]);
+			System.out.println("End word puzzle. It took: " + (System.currentTimeMillis() - startTimer) + " to be solved!");
 		}
 	}
 }
