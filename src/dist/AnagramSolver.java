@@ -15,11 +15,13 @@ public class AnagramSolver implements Runnable{
 	public HashMap<Integer, LinkedList<String>> instanceMapper;
 	public HashMap<Character, Integer> AlphabetIndexer;
 	public LinkedList<String> permuationHandler;
+	public volatile int problemInt;
 	
 	public AnagramSolver(){
 		this.instanceMapper = new HashMap<Integer, LinkedList<String>>();
 		this.AlphabetIndexer = new HashMap<Character, Integer>();
 		this.permuationHandler = new LinkedList<String>();
+		this.problemInt = 0;
 	}
 	@Override
 	public void run(){
@@ -218,27 +220,31 @@ public class AnagramSolver implements Runnable{
 		catchResultsFromFileRaw = solver.getFileResource("dictionary.txt");
 		
 		//Solve for each word in dictionary
-		int maxToDo = 100;
-		int currentMax = 0;
-		while(currentMax != maxToDo){
-			System.out.println("Starting word " + currentMax + " to be solved...");
-			long startTimer = System.currentTimeMillis();
-			solver = new AnagramSolver();
-			solver.setupAlphabetHash();
-			resultsForOneWord = solver.findAllResults(catchResultsFromFileRaw[currentMax], solver.getFileResource("dictionary.txt"));
-			solver.writeResultsToFile(resultsForOneWord, catchResultsFromFileRaw[currentMax++]);
-			System.out.println("End word puzzle. It took: " + (System.currentTimeMillis() - startTimer) + " to be solved!");
-		}
-		
+//		int maxToDo = 100;
+//		int currentMax = 0;
+//		while(currentMax != maxToDo){
+//			System.out.println("Starting word " + currentMax + " to be solved...");
+//			long startTimer = System.currentTimeMillis();
+//			solver = new AnagramSolver();
+//			solver.setupAlphabetHash();
+//			resultsForOneWord = solver.findAllResults(catchResultsFromFileRaw[currentMax], solver.getFileResource("dictionary.txt"));
+//			solver.writeResultsToFile(resultsForOneWord, catchResultsFromFileRaw[currentMax++]);
+//			System.out.println("End word puzzle. It took: " + (System.currentTimeMillis() - startTimer) + " to be solved!");
+//		}
+		AnagramSolver kkE= new AnagramSolver();
 		LinkedList<String> wordsToSolve = new LinkedList<String>(Arrays.asList(catchResultsFromFileRaw));
 		int numProblemCounter = 0;
+		
 		String currentWord;
 		ExecutorService executor = Executors.newFixedThreadPool(10);
-	    while((currentWord = wordsToSolve.get(numProblemCounter)) != null){
-	    	AnagramSolver workerThreadGeneric = new AnagramSolver();
-	    	
-	    	numProblemCounter++;
+	    while((currentWord = wordsToSolve.get(numProblemCounter)) != null && numProblemCounter < 10){
+	    	 AnagramAutomator trial = new AnagramAutomator(numProblemCounter, kkE);
+	    	 executor.execute(trial);
+	    	 numProblemCounter++;
+	    	 System.out.println("Current word: " + currentWord);
+	    	 System.out.println("HI:::: " + numProblemCounter);
 	    }
+	    
 	}
 }
 
