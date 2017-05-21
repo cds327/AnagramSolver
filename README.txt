@@ -10,11 +10,16 @@ TODO's:
 			*Add concurrency to application to make runtime better
 			*Sample 50 and report run time in "Current Runtime" section to show improvement
 			*Try to get 50 done in under 5 minutes.
-	
+		-Results as of 05/19/2017
+			*Added concurrency up to 20 simultaneous threads which does drastically make runtime better.
+			*I did 50 anagrams under 4 minutes with 20 simultaneous threads.
+			*Accomplished goal of doing 50 in user 5 minutes as stated above.
 	Sprint 2:
 		-Due: 05/26/2017
 		-Objectives:
 			*Fix more implementation issues and clean up code.
+				-Fix memory leak issues surrounding concurrent operations
+				-Fix answer being added to instead of having shared variables for data within the concurrent sections.
 			*Add comments to everything to make it understandable.
 			*Start add GUI interface so lay users could use this program.
 				@Allow one to input an anagram word and have it solved and returned.

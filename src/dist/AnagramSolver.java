@@ -15,11 +15,13 @@ public class AnagramSolver implements Runnable{
 	public HashMap<Integer, LinkedList<String>> instanceMapper;
 	public HashMap<Character, Integer> AlphabetIndexer;
 	public LinkedList<String> permuationHandler;
+	public volatile int problemInt;
 	
 	public AnagramSolver(){
 		this.instanceMapper = new HashMap<Integer, LinkedList<String>>();
 		this.AlphabetIndexer = new HashMap<Character, Integer>();
 		this.permuationHandler = new LinkedList<String>();
+		this.problemInt = 0;
 	}
 	@Override
 	public void run(){
@@ -96,7 +98,7 @@ public class AnagramSolver implements Runnable{
 	public String[] findAllResults(String givenWord, String[] dictionary){
 		//System.err.println("Being finding all answers...");
 		//long startTime = System.currentTimeMillis();
-		String[] results = new String[1000];
+		String[] results = new String[350000];
 		//results = getAllPerm("", givenWord);
 		//getAllPerm("", givenWord);
 		PermutationFinder worker = new PermutationFinder(this.permuationHandler, "", givenWord);
@@ -214,31 +216,25 @@ public class AnagramSolver implements Runnable{
 		 * First we read from file operation. We will store the result of each line into an array for easy access later.
 		 */
 		String[] catchResultsFromFileRaw = new String[350000];
-		String[] resultsForOneWord = new String[100000];
 		catchResultsFromFileRaw = solver.getFileResource("dictionary.txt");
-		
-		//Solve for each word in dictionary
-		int maxToDo = 100;
-		int currentMax = 0;
-		while(currentMax != maxToDo){
-			System.out.println("Starting word " + currentMax + " to be solved...");
-			long startTimer = System.currentTimeMillis();
-			solver = new AnagramSolver();
-			solver.setupAlphabetHash();
-			resultsForOneWord = solver.findAllResults(catchResultsFromFileRaw[currentMax], solver.getFileResource("dictionary.txt"));
-			solver.writeResultsToFile(resultsForOneWord, catchResultsFromFileRaw[currentMax++]);
-			System.out.println("End word puzzle. It took: " + (System.currentTimeMillis() - startTimer) + " to be solved!");
-		}
-		
+		long globalStartTime = System.currentTimeMillis();
+		AnagramSolver kkE= new AnagramSolver();
 		LinkedList<String> wordsToSolve = new LinkedList<String>(Arrays.asList(catchResultsFromFileRaw));
 		int numProblemCounter = 0;
+		
 		String currentWord;
-		ExecutorService executor = Executors.newFixedThreadPool(10);
-	    while((currentWord = wordsToSolve.get(numProblemCounter)) != null){
-	    	AnagramSolver workerThreadGeneric = new AnagramSolver();
-	    	
-	    	numProblemCounter++;
+		
+		ExecutorService executor = Executors.newFixedThreadPool(20);
+	    while((currentWord = wordsToSolve.get(numProblemCounter)) != null && numProblemCounter < 105){
+	    	 AnagramAutomator trial = new AnagramAutomator(numProblemCounter, kkE, catchResultsFromFileRaw);
+	    	 executor.execute(trial);
+	    	 System.gc();
+	    	 numProblemCounter++;
 	    }
+	    executor.shutdown();
+	    System.out.println("Full Process has been completed and all answers are in a text file called Anagram-Answer.txt on your desktop! It took a total time of: " +  (System.currentTimeMillis() - globalStartTime) + 
+	    		" to process " + numProblemCounter + " anagrams!");
+	    
 	}
 }
 
